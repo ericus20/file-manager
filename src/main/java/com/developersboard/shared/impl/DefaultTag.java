@@ -14,10 +14,12 @@ import java.util.concurrent.locks.StampedLock;
 public class DefaultTag implements Tag {
 
     private String name;
-
     private final StampedLock lock = new StampedLock();
-
     private final Set<TaggedFile> files = new HashSet<>();
+
+    public DefaultTag(String name) {
+        this.name = name;
+    }
 
     @Override
     public String getName() {

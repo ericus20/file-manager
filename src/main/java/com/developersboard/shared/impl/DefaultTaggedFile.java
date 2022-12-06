@@ -2,6 +2,7 @@ package com.developersboard.shared.impl;
 
 import com.developersboard.shared.Tag;
 import com.developersboard.shared.TaggedFile;
+import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 
+@Component
 public class DefaultTaggedFile implements TaggedFile {
 
     private final Path path;

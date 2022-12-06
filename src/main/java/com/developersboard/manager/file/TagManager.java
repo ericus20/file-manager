@@ -16,6 +16,8 @@ public interface TagManager {
 
     Path BASEDIR = Paths.get(System.getProperty("user.dir"), "sampleDir");
 
+    String DEFAULT_TAG_NAME = "untagged";
+
     /**
      * Initialize your FileTagManager with the starting set of files. You do not
      * need to persist tags on files from run to run. Each file should start

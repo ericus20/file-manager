@@ -10,10 +10,15 @@ import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class FileTagManager extends AbstractFileTagManager {
+
+    public FileTagManager(Tag tag, TaggedFile taggedFile) {
+        super(tag, taggedFile);
+    }
 
     @Override
     public void init(List<Path> files) {

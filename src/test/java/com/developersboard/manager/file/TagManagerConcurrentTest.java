@@ -1,19 +1,32 @@
 package com.developersboard.manager.file;
 
+import com.developersboard.config.ApplicationConfig;
 import com.developersboard.internal.DeadlockDetectorAndRerunRule;
 import com.developersboard.manager.command.FileTagCommandManager;
 import com.developersboard.manager.file.impl.FileTagManager;
+import com.developersboard.shared.impl.DefaultTag;
+import com.developersboard.shared.impl.DefaultTaggedFile;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
+@ContextConfiguration(classes = {
+        DefaultTag.class,
+        FileTagManager.class,
+        DefaultTaggedFile.class,
+        ApplicationConfig.class,
+})
 @Execution(ExecutionMode.CONCURRENT)
-@ExtendWith(DeadlockDetectorAndRerunRule.class)
+@ExtendWith({DeadlockDetectorAndRerunRule.class, SpringExtension.class})
 class TagManagerConcurrentTest {
 
     /* Leave at 6 please */
@@ -23,6 +36,7 @@ class TagManagerConcurrentTest {
      * Use this instance of fileManager in each of your tests - it will be
      * created fresh for each test.
      */
+    @Autowired
     private TagManager cut; // class under test (cut)
 
     /**
@@ -33,7 +47,6 @@ class TagManagerConcurrentTest {
      */
     @BeforeEach
     void setup() throws IOException {
-        cut = new FileTagManager();
         cut.init(FileTagCommandManager.listAllFiles());
     }
 
@@ -53,7 +66,7 @@ class TagManagerConcurrentTest {
     /**
      * Create N_THREADS threads, and have each thread add 1,000 different tags;
      * assert that each thread creating a different tag succeeds, and that at
-     * the end, the list of tags contains all of tags that should exist
+     * the end, the list of tags contains all tags that should exist
      */
     @RepeatedTest(DeadlockDetectorAndRerunRule.N_ITERATIONS)
     void testP1ConcurrentAddTagDifferentTags() {

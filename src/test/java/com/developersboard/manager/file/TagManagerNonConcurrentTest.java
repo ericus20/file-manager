@@ -1,12 +1,19 @@
 package com.developersboard.manager.file;
 
+import com.developersboard.config.ApplicationConfig;
 import com.developersboard.exception.NoSuchTagException;
 import com.developersboard.exception.TagExistsException;
 import com.developersboard.manager.command.FileTagCommandManager;
 import com.developersboard.manager.file.impl.FileTagManager;
 import com.developersboard.shared.Tag;
 import com.developersboard.shared.TaggedFile;
+import com.developersboard.shared.impl.DefaultTag;
+import com.developersboard.shared.impl.DefaultTaggedFile;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.NoSuchFileException;
@@ -15,18 +22,22 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-
+@ContextConfiguration(classes = {
+        DefaultTag.class,
+        FileTagManager.class,
+        DefaultTaggedFile.class,
+        ApplicationConfig.class,
+})
+@ExtendWith(SpringExtension.class)
 class TagManagerNonConcurrentTest {
 
-    public static final String DEFAULT_TAG_NAME = "untagged";
-    // cut = class under test
-    private TagManager cut;
+    @Autowired
+    private TagManager cut; // cut = class under test
 
     @BeforeEach
     @Timeout(value = 8000, unit = TimeUnit.MILLISECONDS)
-        // 8 seconds
     void setUp() {
-        cut = new FileTagManager();
+        Assertions.assertNotNull(cut);
     }
 
     @Test
@@ -38,7 +49,10 @@ class TagManagerNonConcurrentTest {
         var addedTag = cut.addTag(tagName);
 
         // then
-        Assertions.assertNotNull(addedTag);
+        Assertions.assertAll(() -> {
+            Assertions.assertNotNull(addedTag);
+            Assertions.assertEquals(tagName, addedTag.getName());
+        });
     }
 
     @Test
@@ -55,7 +69,7 @@ class TagManagerNonConcurrentTest {
         for (Tag tag : tags) {
             if (tag.getName().equals(tagName)) {
                 foundTag = true;
-            } else if (!tag.getName().equals(DEFAULT_TAG_NAME)) {
+            } else if (!tag.getName().equals(TagManager.DEFAULT_TAG_NAME)) {
                 Assertions.fail("Unexpected tag found: " + tag);
             }
         }
@@ -88,7 +102,7 @@ class TagManagerNonConcurrentTest {
         for (Tag tag : res) {
             if (tag.getName().equals(newTagName)) {
                 foundNewTag = true;
-            } else if (!tag.getName().equals(DEFAULT_TAG_NAME)) {
+            } else if (!tag.getName().equals(TagManager.DEFAULT_TAG_NAME)) {
                 Assertions.fail("Unexpected tag found: " + tag);
             }
         }
@@ -176,14 +190,14 @@ class TagManagerNonConcurrentTest {
         var fileName = testInfo.getDisplayName();
         cut.init(Collections.singletonList(Paths.get(fileName)));
 
-        Iterable<? extends TaggedFile> files = cut.listFilesByTag(DEFAULT_TAG_NAME);
+        Iterable<? extends TaggedFile> files = cut.listFilesByTag(TagManager.DEFAULT_TAG_NAME);
         Iterator<? extends TaggedFile> iter = files.iterator();
         TaggedFile file = iter.next();
         Assertions.assertEquals(file.getName(), fileName);
         Assertions.assertFalse(iter.hasNext());
 
         Iterator<? extends Tag> tags = cut.getTags(fileName).iterator();
-        Assertions.assertEquals(DEFAULT_TAG_NAME, tags.next().getName());
+        Assertions.assertEquals(TagManager.DEFAULT_TAG_NAME, tags.next().getName());
         Assertions.assertFalse(tags.hasNext());
     }
 
@@ -245,7 +259,7 @@ class TagManagerNonConcurrentTest {
         Iterator<? extends Tag> tags = cut.getTags(file).iterator();
 
         Assertions.assertAll(() -> {
-            Assertions.assertEquals(DEFAULT_TAG_NAME, tags.next().getName());
+            Assertions.assertEquals(TagManager.DEFAULT_TAG_NAME, tags.next().getName());
             Assertions.assertFalse(tags.hasNext());
         });
     }
@@ -289,7 +303,7 @@ class TagManagerNonConcurrentTest {
     @Test
     void shouldCatToAllExistingTagsSuccessfully() throws Exception {
         cut.init(FileTagCommandManager.listAllFiles());
-        cut.catAllFiles(DEFAULT_TAG_NAME);
+        cut.catAllFiles(TagManager.DEFAULT_TAG_NAME);
     }
 
     @Test
@@ -303,7 +317,7 @@ class TagManagerNonConcurrentTest {
     @Test
     void shouldEchoToAllExistingTagsSuccessfully(TestInfo testInfo) throws Exception {
         cut.init(FileTagCommandManager.listAllFiles());
-        cut.echoToAllFiles(DEFAULT_TAG_NAME, testInfo.getDisplayName());
+        cut.echoToAllFiles(TagManager.DEFAULT_TAG_NAME, testInfo.getDisplayName());
     }
 
     @Test
